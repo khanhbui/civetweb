@@ -233,6 +233,12 @@ static void DEBUG_TRACE_FUNC(const char *func,
 #define DEBUG_TRACE(fmt, ...)                                                  \
 	DEBUG_TRACE_FUNC(__func__, __LINE__, fmt, __VA_ARGS__)
 
+#ifdef PLATFORM_ANDROID
+#include <android/log.h>
+#define LOG(msg) __android_log_print(ANDROID_LOG_DEBUG, "Civetweb Log", "%s", msg)
+#else
+#define LOG(msg) do {} while (0)
+#endif
 #define NEED_DEBUG_TRACE_FUNC
 #ifndef DEBUG_TRACE_STREAM
 # define DEBUG_TRACE_STREAM   stdout
@@ -1761,6 +1767,15 @@ DEBUG_TRACE_FUNC(const char *func, unsigned line, const char *fmt, ...)
 	fflush(DEBUG_TRACE_STREAM);
 	funlockfile(DEBUG_TRACE_STREAM);
 	nslast = nsnow;
+
+#ifdef PLATFORM_ANDROID
+	char buf[MG_BUF_LEN + 1];
+	va_start(args, fmt);
+	vsnprintf(buf, MG_BUF_LEN, fmt, args);
+	va_end(args);
+
+    LOG(buf);
+#endif
 }
 #endif /* NEED_DEBUG_TRACE_FUNC */
 
